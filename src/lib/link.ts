@@ -540,17 +540,19 @@ export class Link {
       this.relayPackets('B', submitB),
     ]);
 
+    if (submitA.length > 0 || submitB.length > 0) {
     // let's wait a bit to ensure our newly committed acks are indexed
-    await Promise.all([
-      this.endA.client.waitForIndexer(),
-      this.endB.client.waitForIndexer(),
-    ]);
+      await Promise.all([
+        this.endA.client.waitForIndexer(),
+        this.endB.client.waitForIndexer(),
+      ]);
+    }
 
     const [ackHeightA, ackHeightB, acksA, acksB] = await Promise.all([
       this.endA.client.currentHeight(),
       this.endB.client.currentHeight(),
-      this.getPendingAcks('A', { minHeight: relayFrom.ackHeightA }),
-      this.getPendingAcks('B', { minHeight: relayFrom.ackHeightB }),
+      this.getPendingAcks('A', { minHeight: relayFrom.ackHeightA, sequence }),
+      this.getPendingAcks('B', { minHeight: relayFrom.ackHeightB, sequence }),
     ]);
 
     await Promise.all([this.relayAcks('A', acksA), this.relayAcks('B', acksB)]);
