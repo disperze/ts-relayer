@@ -143,8 +143,12 @@ export class Endpoint {
   public async queryWrittenAcks({
     minHeight,
     maxHeight,
+    sequence,
   }: QueryOpts = {}): Promise<AckWithMetadata[]> {
     let query = `write_acknowledgement.packet_connection='${this.connectionID}'`;
+    if (sequence) {
+      query = `${query} AND write_acknowledgement.packet_sequence='${sequence}'`;
+    }
     if (minHeight) {
       query = `${query} AND tx.height>=${minHeight}`;
     }
