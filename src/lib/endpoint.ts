@@ -30,6 +30,7 @@ export type AckWithMetadata = Ack & {
 export interface QueryOpts {
   minHeight?: number;
   maxHeight?: number;
+  sequence?: number;
 }
 
 /**
@@ -92,8 +93,12 @@ export class Endpoint {
   private async getPacketsFromTxs({
     minHeight,
     maxHeight,
+    sequence,
   }: QueryOpts = {}): Promise<PacketWithMetadata[]> {
     let query = `send_packet.packet_connection='${this.connectionID}'`;
+    if (sequence) {
+      query = `${query} AND send_packet.packet_sequence='${sequence}'`;
+    }
     if (minHeight) {
       query = `${query} AND tx.height>=${minHeight}`;
     }
