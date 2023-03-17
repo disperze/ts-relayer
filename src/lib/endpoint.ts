@@ -65,8 +65,13 @@ export class Endpoint {
   private async getPacketsFromBlockEvents({
     minHeight,
     maxHeight,
+    sequence,
   }: QueryOpts = {}): Promise<PacketWithMetadata[]> {
     let query = `send_packet.packet_connection='${this.connectionID}'`;
+    if (sequence) {
+      query = `${query} AND send_packet.packet_sequence='${sequence}'`;
+    }
+
     if (minHeight) {
       query = `${query} AND block.height>=${minHeight}`;
     }
@@ -121,11 +126,13 @@ export class Endpoint {
   public async querySentPackets({
     minHeight,
     maxHeight,
+    sequence,
   }: QueryOpts = {}): Promise<PacketWithMetadata[]> {
-    const txsPackets = await this.getPacketsFromTxs({ minHeight, maxHeight });
+    const txsPackets = await this.getPacketsFromTxs({ minHeight, maxHeight, sequence });
     const eventsPackets = await this.getPacketsFromBlockEvents({
       minHeight,
       maxHeight,
+      sequence,
     });
     return ([] as PacketWithMetadata[])
       .concat(...txsPackets)
