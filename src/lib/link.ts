@@ -45,6 +45,7 @@ export interface RelayedHeights {
   packetHeightB?: number;
   ackHeightA?: number;
   ackHeightB?: number;
+  sequence?: number;
 }
 
 // This is metadata on a round of relaying
@@ -480,11 +481,13 @@ export class Link {
    */
   public async checkAndRelayPacketsAndAcks(
     relayFrom: RelayedHeights,
+    sequence?: number,
     timedoutThresholdBlocks = 0,
     timedoutThresholdSeconds = 0
   ): Promise<RelayedHeights> {
     const { heights } = await this.doCheckAndRelay(
       relayFrom,
+      sequence,
       timedoutThresholdBlocks,
       timedoutThresholdSeconds
     );
@@ -494,6 +497,7 @@ export class Link {
 
   protected async doCheckAndRelay(
     relayFrom: RelayedHeights,
+    sequence?: number,
     timedoutThresholdBlocks = 0,
     timedoutThresholdSeconds = 0
   ): Promise<{ heights: RelayedHeights; info: RelayInfo }> {
@@ -502,8 +506,8 @@ export class Link {
       await Promise.all([
         this.endA.client.currentHeight(),
         this.endB.client.currentHeight(),
-        this.getPendingPackets('A', { minHeight: relayFrom.packetHeightA }),
-        this.getPendingPackets('B', { minHeight: relayFrom.packetHeightB }),
+        this.getPendingPackets('A', { minHeight: relayFrom.packetHeightA, sequence }),
+        this.getPendingPackets('B', { minHeight: relayFrom.packetHeightB, sequence }),
       ]);
 
     const cutoffHeightA = await this.endB.client.timeoutHeight(

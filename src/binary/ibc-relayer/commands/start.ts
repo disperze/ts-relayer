@@ -72,6 +72,7 @@ type LoopFlags = {
   readonly maxAgeSrc?: string;
   readonly maxAgeDest?: string;
   readonly once: boolean;
+  readonly seq?: number;
 };
 type LoopOptions = {
   // how many seconds we sleep between relaying batches
@@ -82,6 +83,8 @@ type LoopOptions = {
   readonly maxAgeDest: number;
   // if set to 'true' quit after one pass
   readonly once: boolean;
+  // custom sequence
+  readonly seq?: number;
 };
 
 type Flags = {
@@ -195,6 +198,7 @@ export async function start(flags: Flags, logger: Logger) {
 
   // FIXME: any env variable for this?
   const once = flags.once;
+  const seq = flags.seq;
 
   const options: Options = {
     src,
@@ -210,6 +214,7 @@ export async function start(flags: Flags, logger: Logger) {
     heights,
     enableMetrics,
     metricsPort,
+    seq,
   };
 
   await run(options, logger);
@@ -270,7 +275,7 @@ async function relayerLoop(
   while (!done) {
     try {
       // TODO: make timeout windows more configurable
-      nextRelay = await link.checkAndRelayPacketsAndAcks(nextRelay, 2, 6);
+      nextRelay = await link.checkAndRelayPacketsAndAcks(nextRelay, options.seq, 2, 6);
 
       fs.writeFileSync(
         lastQueriedHeightsFilePath,
@@ -283,6 +288,11 @@ async function relayerLoop(
       await link.updateClientIfStale('B', options.maxAgeSrc);
     } catch (e) {
       logger.error(`Caught error: `, e);
+    }
+
+    if (options.seq) {
+      logger.info('Quitting after one sequence relayed');
+      return;
     }
 
     if (options.once) {
