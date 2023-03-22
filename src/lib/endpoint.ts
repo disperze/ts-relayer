@@ -111,7 +111,6 @@ export class Endpoint {
       query = `${query} AND tx.height<=${maxHeight}`;
     }
 
-    console.log('rcv query', query)
     const search = await this.client.tm.txSearchAll({ query });
     const resultsNested = search.txs.map(
       ({ height, result }): PacketWithMetadata[] =>
@@ -157,7 +156,6 @@ export class Endpoint {
       query = `${query} AND tx.height<=${maxHeight}`;
     }
 
-    console.log('ack query', query)
     const search = await this.client.tm.txSearchAll({ query });
     const out = search.txs.flatMap(({ height, result, hash }) => {
       const parsedLogs = logs.parseRawLog(result.log);
