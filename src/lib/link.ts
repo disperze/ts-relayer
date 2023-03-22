@@ -399,16 +399,19 @@ export class Link {
     );
     const { src, dest } = this.getEnds(source);
     const client = await dest.client.query.ibc.client.stateTm(dest.clientID);
+    this.logger.info("Height " + client.latestHeight);
     // TODO: revisit where revision number comes from - this must be the number from the source chain
     const knownHeight = client.latestHeight?.revisionHeight?.toNumber() ?? 0;
     if (knownHeight >= minHeight && client.latestHeight !== undefined) {
       return client.latestHeight;
     }
 
+    this.logger.info("Getting last header");
     const curHeight = (await src.client.latestHeader()).height;
     if (curHeight < minHeight) {
       await src.client.waitOneBlock();
     }
+    this.logger.info("Build updateMsg");
     return this.updateClientMsg(source);
   }
 
