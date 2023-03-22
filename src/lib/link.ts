@@ -588,7 +588,7 @@ export class Link {
     const allPackets = await src.querySentPackets(opts);
 
     console.log("rcv packets", allPackets.map(({ packet }) => ({
-      sequence: packet.sequence.toNumber(),
+      seq: packet.sequence.toNumber(),
       ...packet,
     })));
 
@@ -640,7 +640,7 @@ export class Link {
     const { src, dest } = this.getEnds(source);
     const allAcks = await src.queryWrittenAcks(opts);
     console.log("acks", allAcks.map(({ originalPacket }) => ({
-      sequence: originalPacket.sequence.toNumber(),
+      seq: originalPacket.sequence.toNumber(),
       ...originalPacket,
     })));
 
