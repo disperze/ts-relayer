@@ -1214,7 +1214,7 @@ export class IbcClient {
 
     const senderAddress = this.senderAddress;
     const msgs = [];
-    if (clientId && src) {
+    if (clientId && src && proofHeight) {
       const updateMsg = await this.getUpdateClientMsg(proofHeight, clientId, src)
       msgs.push(updateMsg);
     }
