@@ -598,8 +598,11 @@ export class IbcClient {
     clientId: string,
     src: IbcClient
   ): Promise<any> {
+    this.logger.info("getUpdateClientMsg")
     const { latestHeight } = await this.query.ibc.client.stateTm(clientId);
+    this.logger.info("Latest height" + latestHeight)
     const header = await src.buildHeader(toIntHeight(latestHeight));
+    this.logger.info("Get header" + header)
     const senderAddress = this.senderAddress;
     const updateMsg = {
       typeUrl: '/ibc.core.client.v1.MsgUpdateClient',
@@ -613,6 +616,7 @@ export class IbcClient {
       }),
     };
     const height = header.signedHeader?.header?.height?.toNumber() ?? 0;
+    this.logger.info("Height" + height)
     return {
       msg: updateMsg,
       height: src.revisionHeight(height),

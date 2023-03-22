@@ -764,6 +764,7 @@ export class Link {
     // check if we need to update client at all
     const neededHeight = Math.max(...packets.map((x) => x.height)) + 1;
     const { height: headerHeight, msg: updateMsg} = await this.updateClientToHeightMsg(source, neededHeight);
+    this.logger.info("UpdateMsg", updateMsg)
 
     const submit = packets.map(({ packet }) => packet);
     const proofs = await Promise.all(
@@ -806,6 +807,7 @@ export class Link {
     // check if we need to update client at all
     const neededHeight = Math.max(...acks.map((x) => x.height)) + 1;
     const { height: headerHeight, msg: updateMsg} = await this.updateClientToHeightMsg(source, neededHeight);
+    this.logger.info("UpdateMsg", updateMsg)
 
     const proofs = await Promise.all(
       acks.map((ack) => src.client.getAckProof(ack, headerHeight))
