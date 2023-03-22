@@ -375,7 +375,8 @@ export class Link {
       return client.latestHeight;
     }
 
-    return (await src.client.latestHeader()).height;
+    const curHeight = (await src.client.latestHeader()).height;
+    return src.client.revisionHeight(curHeight);
     // const curHeight = (await src.client.latestHeader()).height;
     // if (curHeight < minHeight) {
     //   await src.client.waitOneBlock();
