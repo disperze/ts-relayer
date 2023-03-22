@@ -594,6 +594,28 @@ export class IbcClient {
     return src.revisionHeight(height);
   }
 
+  public async getUpdateClientMsg(
+    height: Height,
+    clientId: string,
+    src: IbcClient
+  ): Promise<any> {
+    const header = await src.buildHeader(toIntHeight(height));
+    this.logger.verbose(`Builder Tendermint Updateclient ${clientId}`);
+    const senderAddress = this.senderAddress;
+    const updateMsg = {
+      typeUrl: '/ibc.core.client.v1.MsgUpdateClient',
+      value: MsgUpdateClient.fromPartial({
+        signer: senderAddress,
+        clientId,
+        header: {
+          typeUrl: '/ibc.lightclients.tendermint.v1.Header',
+          value: TendermintHeader.encode(header).finish(),
+        },
+      }),
+    };
+    return updateMsg;
+  }
+
   /***** These are all direct wrappers around message constructors ********/
 
   public async sendTokens(
@@ -726,7 +748,8 @@ export class IbcClient {
     const result = await this.sign.signAndBroadcast(
       senderAddress,
       [updateMsg],
-      'auto'
+      'auto',
+      'ts-relayer'
     );
     if (isDeliverTxFailure(result)) {
       throw new Error(createDeliverTxFailureMessage(result));
@@ -1175,7 +1198,9 @@ export class IbcClient {
   public async receivePackets(
     packets: readonly Packet[],
     proofCommitments: readonly Uint8Array[],
-    proofHeight?: Height
+    proofHeight?: Height,
+    clientId?: string,
+    src?: IbcClient
   ): Promise<MsgResult> {
     this.logger.verbose(`Receive ${packets.length} packets..`);
     if (packets.length !== proofCommitments.length) {
@@ -1189,6 +1214,11 @@ export class IbcClient {
 
     const senderAddress = this.senderAddress;
     const msgs = [];
+    if (clientId && src) {
+      const updateMsg = await this.getUpdateClientMsg(proofHeight, clientId, src)
+      msgs.push(updateMsg);
+    }
+
     for (const i in packets) {
       const packet = packets[i];
       this.logger.verbose(

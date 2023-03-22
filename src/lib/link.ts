@@ -375,11 +375,12 @@ export class Link {
       return client.latestHeight;
     }
 
-    const curHeight = (await src.client.latestHeader()).height;
-    if (curHeight < minHeight) {
-      await src.client.waitOneBlock();
-    }
-    return this.updateClient(source);
+    return (await src.client.latestHeader()).height;
+    // const curHeight = (await src.client.latestHeader()).height;
+    // if (curHeight < minHeight) {
+    //   await src.client.waitOneBlock();
+    // }
+    // return this.updateClient(source);
   }
 
   public async createChannel(
@@ -739,7 +740,9 @@ export class Link {
     const { logs, height, transactionHash } = await dest.client.receivePackets(
       submit,
       proofs,
-      headerHeight
+      headerHeight,
+      dest.clientID,
+      src.client,
     );
     const acks = parseAcksFromLogs(logs);
     return acks.map((ack) => ({
