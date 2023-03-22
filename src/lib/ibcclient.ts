@@ -1242,21 +1242,23 @@ export class IbcClient {
         }),
       };
       msgs.push(msg);
+      this.logger.debug("adding rcv msg");
     }
-    this.logger.debug('MsgRecvPacket(s)', {
-      msgs: msgs.map((msg) =>
-        deepCloneAndMutate(msg, (mutableMsg) => {
-          mutableMsg.value.proofCommitment = toBase64AsAny(
-            mutableMsg.value.proofCommitment
-          );
-          if (mutableMsg.value.packet?.data) {
-            mutableMsg.value.packet.data = toBase64AsAny(
-              mutableMsg.value.packet.data
-            );
-          }
-        })
-      ),
-    });
+    // this.logger.debug('MsgRecvPacket(s)', {
+    //   msgs: msgs.map((msg) =>
+    //     deepCloneAndMutate(msg, (mutableMsg) => {
+    //       mutableMsg.value.proofCommitment = toBase64AsAny(
+    //         mutableMsg.value.proofCommitment
+    //       );
+    //       if (mutableMsg.value.packet?.data) {
+    //         mutableMsg.value.packet.data = toBase64AsAny(
+    //           mutableMsg.value.packet.data
+    //         );
+    //       }
+    //     })
+    //   ),
+    // });
+    this.logger.info("sending rcv Packets msg");
     const result = await this.sign.signAndBroadcast(
       senderAddress,
       msgs,
@@ -1329,23 +1331,23 @@ export class IbcClient {
       };
       msgs.push(msg);
     }
-    this.logger.debug('MsgAcknowledgement(s)', {
-      msgs: msgs.map((msg) =>
-        deepCloneAndMutate(msg, (mutableMsg) => {
-          mutableMsg.value.acknowledgement = toBase64AsAny(
-            mutableMsg.value.acknowledgement
-          );
-          mutableMsg.value.proofAcked = toBase64AsAny(
-            mutableMsg.value.proofAcked
-          );
-          if (mutableMsg.value.packet?.data) {
-            mutableMsg.value.packet.data = toBase64AsAny(
-              mutableMsg.value.packet.data
-            );
-          }
-        })
-      ),
-    });
+    // this.logger.debug('MsgAcknowledgement(s)', {
+    //   msgs: msgs.map((msg) =>
+    //     deepCloneAndMutate(msg, (mutableMsg) => {
+    //       mutableMsg.value.acknowledgement = toBase64AsAny(
+    //         mutableMsg.value.acknowledgement
+    //       );
+    //       mutableMsg.value.proofAcked = toBase64AsAny(
+    //         mutableMsg.value.proofAcked
+    //       );
+    //       if (mutableMsg.value.packet?.data) {
+    //         mutableMsg.value.packet.data = toBase64AsAny(
+    //           mutableMsg.value.packet.data
+    //         );
+    //       }
+    //     })
+    //   ),
+    // });
     const result = await this.sign.signAndBroadcast(
       senderAddress,
       msgs,
