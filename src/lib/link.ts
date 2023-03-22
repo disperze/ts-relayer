@@ -587,7 +587,10 @@ export class Link {
     const { src, dest } = this.getEnds(source);
     const allPackets = await src.querySentPackets(opts);
 
-    console.log("rcv packets", allPackets)
+    console.log("rcv packets", allPackets.map(({ packet }) => ({
+      sequence: packet.sequence.toNumber(),
+      ...packet,
+    })));
 
     const toFilter = allPackets.map(({ packet }) => packet);
     const query = async (
@@ -636,7 +639,10 @@ export class Link {
     this.logger.verbose(`Get pending acks on ${this.chain(source)}`);
     const { src, dest } = this.getEnds(source);
     const allAcks = await src.queryWrittenAcks(opts);
-    console.log("acks", allAcks)
+    console.log("acks", allAcks.map(({ originalPacket }) => ({
+      sequence: originalPacket.sequence.toNumber(),
+      ...originalPacket,
+    })));
 
     const toFilter = allAcks.map(({ originalPacket }) => originalPacket);
     const query = async (
