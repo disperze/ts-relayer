@@ -783,7 +783,9 @@ export class Link {
     const { height } = await dest.client.acknowledgePackets(
       acks,
       proofs,
-      headerHeight
+      headerHeight,
+      dest.clientID,
+      src.client,
     );
     return height;
   }

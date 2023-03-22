@@ -1280,7 +1280,9 @@ export class IbcClient {
   public async acknowledgePackets(
     acks: readonly Ack[],
     proofAckeds: readonly Uint8Array[],
-    proofHeight?: Height
+    proofHeight?: Height,
+    clientId?: string,
+    src?: IbcClient
   ): Promise<MsgResult> {
     this.logger.verbose(`Acknowledge ${acks.length} packets...`);
     if (acks.length !== proofAckeds.length) {
@@ -1294,6 +1296,11 @@ export class IbcClient {
 
     const senderAddress = this.senderAddress;
     const msgs = [];
+    if (clientId && src && proofHeight) {
+      const updateMsg = await this.getUpdateClientMsg(proofHeight, clientId, src)
+      msgs.push(updateMsg);
+    }
+
     for (const i in acks) {
       const packet = acks[i].originalPacket;
       const acknowledgement = acks[i].acknowledgement;
