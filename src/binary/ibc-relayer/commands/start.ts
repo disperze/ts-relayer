@@ -162,6 +162,10 @@ export async function start(flags: Flags, logger: Logger) {
     flags.poll,
     defaults.poll
   );
+  const seq = resolveOption('seq', { required: true, integer: true })(
+    flags.seq,
+    0,
+  );
   const maxAgeSrc = resolveOption('maxAgeSrc', {
     required: true,
     integer: true,
@@ -198,7 +202,6 @@ export async function start(flags: Flags, logger: Logger) {
 
   // FIXME: any env variable for this?
   const once = flags.once;
-  const seq = flags.seq;
 
   const options: Options = {
     src,
@@ -214,7 +217,7 @@ export async function start(flags: Flags, logger: Logger) {
     heights,
     enableMetrics,
     metricsPort,
-    seq,
+    seq: seq ?? undefined,
   };
 
   await run(options, logger);
