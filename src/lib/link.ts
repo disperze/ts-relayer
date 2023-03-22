@@ -313,6 +313,12 @@ export class Link {
     return height;
   }
 
+  public async updateClientMsg(sender: Side): Promise<any> {
+    this.logger.info(`Get Update Client on ${this.otherChain(sender)}`);
+    const { src, dest } = this.getEnds(sender);
+    return await dest.client.getUpdateClientMsg(dest.clientID, src.client);
+  }
+
   /**
    * Checks if the last proven header on the destination is older than maxAge,
    * and if so, update the client. Returns the new client height if updated,
@@ -376,12 +382,34 @@ export class Link {
     }
 
     const curHeight = (await src.client.latestHeader()).height;
-    return src.client.revisionHeight(curHeight);
-    // const curHeight = (await src.client.latestHeader()).height;
-    // if (curHeight < minHeight) {
-    //   await src.client.waitOneBlock();
-    // }
-    // return this.updateClient(source);
+    if (curHeight < minHeight) {
+      await src.client.waitOneBlock();
+    }
+    return this.updateClient(source);
+  }
+
+  public async updateClientToHeightMsg(
+    source: Side,
+    minHeight: number
+  ): Promise<any> {
+    this.logger.info(
+      `Check whether client on ${this.otherChain(
+        source
+      )} >= height ${minHeight}`
+    );
+    const { src, dest } = this.getEnds(source);
+    const client = await dest.client.query.ibc.client.stateTm(dest.clientID);
+    // TODO: revisit where revision number comes from - this must be the number from the source chain
+    const knownHeight = client.latestHeight?.revisionHeight?.toNumber() ?? 0;
+    if (knownHeight >= minHeight && client.latestHeight !== undefined) {
+      return client.latestHeight;
+    }
+
+    const curHeight = (await src.client.latestHeader()).height;
+    if (curHeight < minHeight) {
+      await src.client.waitOneBlock();
+    }
+    return this.updateClientMsg(source);
   }
 
   public async createChannel(
@@ -732,7 +760,7 @@ export class Link {
 
     // check if we need to update client at all
     const neededHeight = Math.max(...packets.map((x) => x.height)) + 1;
-    const headerHeight = await this.updateClientToHeight(source, neededHeight);
+    const { height: headerHeight, msg: updateMsg} = await this.updateClientToHeightMsg(source, neededHeight);
 
     const submit = packets.map(({ packet }) => packet);
     const proofs = await Promise.all(
@@ -742,8 +770,7 @@ export class Link {
       submit,
       proofs,
       headerHeight,
-      dest.clientID,
-      src.client,
+      updateMsg,
     );
     const acks = parseAcksFromLogs(logs);
     return acks.map((ack) => ({
@@ -775,7 +802,7 @@ export class Link {
 
     // check if we need to update client at all
     const neededHeight = Math.max(...acks.map((x) => x.height)) + 1;
-    const headerHeight = await this.updateClientToHeight(source, neededHeight);
+    const { height: headerHeight, msg: updateMsg} = await this.updateClientToHeightMsg(source, neededHeight);
 
     const proofs = await Promise.all(
       acks.map((ack) => src.client.getAckProof(ack, headerHeight))
@@ -784,8 +811,7 @@ export class Link {
       acks,
       proofs,
       headerHeight,
-      dest.clientID,
-      src.client,
+      updateMsg,
     );
     return height;
   }

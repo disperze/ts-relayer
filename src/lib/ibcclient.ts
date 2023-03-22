@@ -595,12 +595,11 @@ export class IbcClient {
   }
 
   public async getUpdateClientMsg(
-    height: Height,
     clientId: string,
     src: IbcClient
   ): Promise<any> {
-    const header = await src.buildHeader(toIntHeight(height));
-    this.logger.verbose(`Builder Tendermint Updateclient ${clientId}`);
+    const { latestHeight } = await this.query.ibc.client.stateTm(clientId);
+    const header = await src.buildHeader(toIntHeight(latestHeight));
     const senderAddress = this.senderAddress;
     const updateMsg = {
       typeUrl: '/ibc.core.client.v1.MsgUpdateClient',
@@ -613,7 +612,11 @@ export class IbcClient {
         },
       }),
     };
-    return updateMsg;
+    const height = header.signedHeader?.header?.height?.toNumber() ?? 0;
+    return {
+      msg: updateMsg,
+      height: src.revisionHeight(height),
+    };
   }
 
   /***** These are all direct wrappers around message constructors ********/
@@ -1199,8 +1202,7 @@ export class IbcClient {
     packets: readonly Packet[],
     proofCommitments: readonly Uint8Array[],
     proofHeight?: Height,
-    clientId?: string,
-    src?: IbcClient
+    extraMsg?: any,
   ): Promise<MsgResult> {
     this.logger.verbose(`Receive ${packets.length} packets..`);
     if (packets.length !== proofCommitments.length) {
@@ -1214,9 +1216,8 @@ export class IbcClient {
 
     const senderAddress = this.senderAddress;
     const msgs = [];
-    if (clientId && src && proofHeight) {
-      const updateMsg = await this.getUpdateClientMsg(proofHeight, clientId, src)
-      msgs.push(updateMsg);
+    if (extraMsg) {
+      msgs.push(extraMsg);
     }
 
     for (const i in packets) {
@@ -1281,8 +1282,7 @@ export class IbcClient {
     acks: readonly Ack[],
     proofAckeds: readonly Uint8Array[],
     proofHeight?: Height,
-    clientId?: string,
-    src?: IbcClient
+    extraMsg?: any,
   ): Promise<MsgResult> {
     this.logger.verbose(`Acknowledge ${acks.length} packets...`);
     if (acks.length !== proofAckeds.length) {
@@ -1296,9 +1296,8 @@ export class IbcClient {
 
     const senderAddress = this.senderAddress;
     const msgs = [];
-    if (clientId && src && proofHeight) {
-      const updateMsg = await this.getUpdateClientMsg(proofHeight, clientId, src)
-      msgs.push(updateMsg);
+    if (extraMsg) {
+      msgs.push(extraMsg);
     }
 
     for (const i in acks) {
