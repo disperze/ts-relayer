@@ -162,8 +162,9 @@ export async function start(flags: Flags, logger: Logger) {
     flags.poll,
     defaults.poll
   );
-  const seq = resolveOption('seq', { integer: true })(
+  const seq = resolveOption('seq', { required: true, integer: true })(
     flags.seq,
+    0,
   );
   const maxAgeSrc = resolveOption('maxAgeSrc', {
     required: true,

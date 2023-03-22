@@ -61,7 +61,7 @@ const startCommand = program
   .option('--scan-from-dest <height>')
   // note: once is designed for debugging and unit tests
   .option('--once', 'Relay pending packets and quit, no polling')
-  .option('--seq', 'Relay specify sequence')
+  .option('--seq <sequence>', 'Relay specify sequence')
   .action(loggerWithErrorBoundary(start));
 
 addLoggerOptionsTo(startCommand);
